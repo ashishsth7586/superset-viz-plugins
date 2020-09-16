@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React, { PureComponent, createRef } from 'react';
+import React, { useEffect, createRef } from 'react';
 import { styled, supersetTheme } from '@superset-ui/core';
 
 interface MultipleYAxisStylesProps {
@@ -67,36 +67,32 @@ const Styles = styled.div<MultipleYAxisStylesProps>`
  *  * FormData (your controls!) provided as props by transformProps.ts
  */
 
-export default class MultipleYAxis extends PureComponent<MultipleYAxisProps> {
+export default function MultipleYAxis(props: MultipleYAxisProps) {
+  // height and width are the height and width of the DOM element as it exists in the dashboard.
+  // There is also a `data` prop, which is, of course, your DATA 🎉
+  const { data, height, width } = props;
+
+  const rootElem = createRef<HTMLDivElement>();
+
   // Often, you just want to get a hold of the DOM and go nuts.
-  // Here, you can do that with createRef, and componentDidMount.
-
-  rootElem = createRef<HTMLDivElement>();
-
-  componentDidMount() {
-    const root = this.rootElem.current as HTMLElement;
+  // Here, you can do that with createRef, and the useEffect hook.
+  useEffect(() => {
+    const root = rootElem.current as HTMLElement;
     console.log('Plugin element', root);
-  }
+  });
 
-  render() {
-    // height and width are the height and width of the DOM element as it exists in the dashboard.
-    // There is also a `data` prop, which is, of course, your DATA 🎉
-    console.log('Approach 1 props', this.props);
-    const { data, height, width } = this.props;
+  console.log('Plugin props', props);
 
-    console.log('Plugin props', this.props);
-
-    return (
-      <Styles
-        ref={this.rootElem}
-        boldText={this.props.boldText}
-        headerFontSize={this.props.headerFontSize}
-        height={height}
-        width={width}
-      >
-        <h3>{this.props.headerText}</h3>
-        <pre>{JSON.stringify(data, null, 2)}</pre>
-      </Styles>
-    );
-  }
+  return (
+    <Styles
+      ref={rootElem}
+      boldText={props.boldText}
+      headerFontSize={props.headerFontSize}
+      height={height}
+      width={width}
+    >
+      <h3>{props.headerText}</h3>
+      <pre>${JSON.stringify(data, null, 2)}</pre>
+    </Styles>
+  );
 }

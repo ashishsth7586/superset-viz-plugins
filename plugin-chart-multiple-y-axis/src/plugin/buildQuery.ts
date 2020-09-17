@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { buildQueryContext, QueryFormData } from '@superset-ui/core';
+import { buildQueryContext, QueryFormData } from "@superset-ui/core";
 
 /**
  * The buildQuery function is used to create an instance of QueryContext that's
@@ -33,9 +33,10 @@ import { buildQueryContext, QueryFormData } from '@superset-ui/core';
  * if a viz needs multiple different result sets.
  */
 export default function buildQuery(formData: QueryFormData) {
-  return buildQueryContext(formData, baseQueryObject => [
+  return buildQueryContext(formData, (baseQueryObject) => [
     {
       ...baseQueryObject,
+      groupby: formData.series,
       // Time series charts need to set the `is_timeseries` flag to true
       is_timeseries: true,
     },

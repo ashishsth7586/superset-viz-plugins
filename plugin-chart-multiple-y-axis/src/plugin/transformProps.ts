@@ -16,15 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { ChartProps, DataRecord } from '@superset-ui/core';
+import { ChartProps, getNumberFormatter } from "@superset-ui/core";
+import { EchartTimeseriesProps } from "./types";
+import echarts from "echarts";
 
-type TimestampType = string | number | Date;
-
-interface MultipleYAxisDatum extends DataRecord {
-  __timestamp: TimestampType;
-}
-
-export default function transformProps(chartProps: ChartProps) {
+export default function transformProps(
+  chartProps: ChartProps
+): EchartTimeseriesProps {
   /**
    * This function is called after a successful response has been
    * received from the chart data endpoint, and is used to transform
@@ -55,23 +53,73 @@ export default function transformProps(chartProps: ChartProps) {
    * be seen until restarting the development server.
    */
   const { width, height, formData, queryData } = chartProps;
-  const data = queryData.data as MultipleYAxisDatum[];
+  const {
+    contributionMode,
+    logAxis,
+    stack,
+    minorSplitLine,
+    yAxisFormat,
+    zoomable,
+  } = formData;
 
-  console.log('formData via TransformProps.ts', formData);
+  console.log("All Chart Props: ", chartProps);
+  console.log("Query Data: ", queryData);
+
+  console.log("formData: ", formData);
+
+  const series: echarts.EChartOption.Series[] = [];
+  const formatter = getNumberFormatter(contributionMode ? ",.0%" : yAxisFormat);
+
+  const echartOptions: echarts.EChartOption = {
+    grid: {
+      top: 30,
+      bottom: zoomable ? 80 : 0,
+      left: 20,
+      right: 20,
+      containLabel: true,
+    },
+    xAxis: { type: "time" },
+    yAxis: {
+      type: logAxis ? "log" : "value",
+      min: contributionMode === "row" && stack ? 0 : undefined,
+      max: contributionMode === "row" && stack ? 1 : undefined,
+      minorTick: { show: true },
+      minorSplitLine: { show: minorSplitLine },
+      axisLabel: { formatter },
+    },
+    series,
+  };
 
   return {
+    contributionMode,
+    echartOptions,
     width,
     height,
-
-    data: data.map((item: { __timestamp: TimestampType }) => ({
-      ...item,
-      // convert epoch to native Date
-      // eslint-disable-next-line no-underscore-dangle
-      __timestamp: new Date(item.__timestamp),
-    })),
-    // and now your control data, manipulated as needed, and passed through as props!
-    boldText: formData.boldText,
-    headerFontSize: formData.headerFontSize,
-    headerText: formData.headerText,
+    logAxis,
+    minorSplitLine,
+    stack,
   };
 }
+// export default function transformProps(chartProps: ChartProps) {
+
+//   const { width, height, formData, queryData } = chartProps;
+//   const data = queryData.data as MultipleYAxisDatum[];
+
+//   console.log('formData via TransformProps.ts', formData);
+
+//   return {
+//     width,
+//     height,
+
+//     data: data.map((item: { __timestamp: TimestampType }) => ({
+//       ...item,
+//       // convert epoch to native Date
+//       // eslint-disable-next-line no-underscore-dangle
+//       __timestamp: new Date(item.__timestamp),
+//     })),
+//     // and now your control data, manipulated as needed, and passed through as props!
+//     boldText: formData.boldText,
+//     headerFontSize: formData.headerFontSize,
+//     headerText: formData.headerText,
+//   };
+// }
